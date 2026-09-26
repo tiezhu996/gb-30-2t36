@@ -19,6 +19,7 @@ func migrate(db *gorm.DB) error {
 		&model.AdoptionApplication{},
 		&model.VisitReview{},
 		&model.CommunityPost{},
+		&model.PostLike{},
 		&model.PostComment{},
 		&model.Donation{},
 		&model.DonationUsage{},

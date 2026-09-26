@@ -33,6 +33,20 @@ func AuthRequired(cfg *config.Config) gin.HandlerFunc {
 	}
 }
 
+// AuthOptional parses a Bearer token when present and injects claims,
+// but lets anonymous requests through (GetUserID then returns 0).
+func AuthOptional(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		header := c.GetHeader("Authorization")
+		if strings.HasPrefix(header, "Bearer ") {
+			if claims, err := util.ParseToken(strings.TrimPrefix(header, "Bearer "), cfg.JWTSecret); err == nil {
+				c.Set(UserKey, claims)
+			}
+		}
+		c.Next()
+	}
+}
+
 // GetUserID extracts the authenticated user id.
 func GetUserID(c *gin.Context) uint {
 	v, _ := c.Get(UserKey)

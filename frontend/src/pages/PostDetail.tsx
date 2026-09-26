@@ -13,6 +13,7 @@ export default function PostDetail() {
   const { isLoggedIn } = useAuth()
   const navigate = useNavigate()
   const [post, setPost] = useState<CommunityPost | null>(null)
+  const [liking, setLiking] = useState(false)
 
   async function load() {
     setPost(await getPost(id!))
@@ -27,8 +28,13 @@ export default function PostDetail() {
       navigate('/login')
       return
     }
-    await likePost(post!.id)
-    await load()
+    if (liking) return
+    setLiking(true)
+    try {
+      setPost(await likePost(post!.id))
+    } finally {
+      setLiking(false)
+    }
   }
 
   if (!post) return <p>加载中…</p>
@@ -39,7 +45,17 @@ export default function PostDetail() {
         <h1>{post.title}</h1>
         <p style={{ color: '#888' }}>{formatDateTime(post.created_at)}</p>
         <p style={{ lineHeight: 1.8 }}>{post.content}</p>
-        <a onClick={like}>👍 {post.like_count}</a>
+        <a
+          onClick={like}
+          style={{
+            color: post.liked ? '#f5222d' : undefined,
+            cursor: liking ? 'not-allowed' : 'pointer',
+            opacity: liking ? 0.6 : 1,
+          }}
+        >
+          {post.liked ? '❤️' : '👍'} {post.like_count}
+          {post.liked ? ' 已点赞（再点一次取消）' : ' 点赞'}
+        </a>
       </Card>
       <Card title="评论" style={{ marginTop: 16 }}>
         <PostCommentList postId={post.id} />

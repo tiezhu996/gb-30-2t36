@@ -33,10 +33,17 @@ func (r *CommunityPostRepository) Update(p *model.CommunityPost) error {
 	return translate(r.db.Save(p).Error)
 }
 
-// IncrementLike bumps the like count.
-func (r *CommunityPostRepository) IncrementLike(id uint) error {
-	return r.db.Model(&model.CommunityPost{}).Where("id = ?", id).
+// IncrementLikeTx bumps the like count within an outer transaction.
+func (r *CommunityPostRepository) IncrementLikeTx(tx *gorm.DB, id uint) error {
+	return tx.Model(&model.CommunityPost{}).Where("id = ?", id).
 		UpdateColumn("like_count", gorm.Expr("like_count + 1")).Error
+}
+
+// DecrementLikeTx lowers the like count within an outer transaction,
+// never letting it drop below zero.
+func (r *CommunityPostRepository) DecrementLikeTx(tx *gorm.DB, id uint) error {
+	return tx.Model(&model.CommunityPost{}).Where("id = ? AND like_count > 0", id).
+		UpdateColumn("like_count", gorm.Expr("like_count - 1")).Error
 }
 
 // IncrementComment bumps the comment count.

@@ -15,4 +15,6 @@ type CommunityPost struct {
 	CommentCount int       `gorm:"default:0" json:"comment_count"`
 	Status       string    `gorm:"size:16;default:published" json:"status"`
 	CreatedAt    time.Time `json:"created_at"`
+	// Liked is a transient flag: whether the requesting user has liked this post.
+	Liked bool `gorm:"-" json:"liked"`
 }

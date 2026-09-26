@@ -11,7 +11,7 @@ import (
 func registerPostRoutes(v1 *gin.RouterGroup, cfg *config.Config, ph *handler.PostHandler, ch *handler.CommentHandler, limiter *middleware.RateLimiter) {
 	posts := v1.Group("/posts")
 	posts.GET("", ph.List)
-	posts.GET("/:id", ph.Get)
+	posts.GET("/:id", middleware.AuthOptional(cfg), ph.Get)
 	posts.GET("/:id/comments", ch.List)
 	auth := posts.Group("", middleware.AuthRequired(cfg))
 	auth.POST("", limiter.Limit(), ph.Create)

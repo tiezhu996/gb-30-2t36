@@ -53,7 +53,7 @@ func (h *PostHandler) Get(c *gin.Context) {
 		c.Error(util.NewAppError(http.StatusBadRequest, constants.CodeBadRequest, "invalid post id"))
 		return
 	}
-	p, err := h.svc.Get(uint(id))
+	p, err := h.svc.Get(uint(id), middleware.GetUserID(c))
 	if err != nil {
 		c.Error(err)
 		return
@@ -77,14 +77,14 @@ func (h *PostHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, dto.OK(created))
 }
 
-// Like handles PUT /posts/:id/like.
+// Like handles PUT /posts/:id/like, toggling the current user's like.
 func (h *PostHandler) Like(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		c.Error(util.NewAppError(http.StatusBadRequest, constants.CodeBadRequest, "invalid post id"))
 		return
 	}
-	p, err := h.svc.Like(uint(id))
+	p, err := h.svc.ToggleLike(middleware.GetUserID(c), uint(id))
 	if err != nil {
 		c.Error(err)
 		return

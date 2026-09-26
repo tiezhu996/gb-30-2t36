@@ -92,6 +92,16 @@ CREATE TABLE IF NOT EXISTS community_posts (
   CONSTRAINT fk_post_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+CREATE TABLE IF NOT EXISTS post_likes (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  post_id BIGINT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT uk_post_like_user_post UNIQUE (user_id, post_id),
+  CONSTRAINT fk_like_user FOREIGN KEY (user_id) REFERENCES users(id),
+  CONSTRAINT fk_like_post FOREIGN KEY (post_id) REFERENCES community_posts(id)
+);
+
 CREATE TABLE IF NOT EXISTS post_comments (
   id BIGSERIAL PRIMARY KEY,
   post_id BIGINT NOT NULL,

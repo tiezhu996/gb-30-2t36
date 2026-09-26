@@ -58,6 +58,7 @@ export interface CommunityPost {
   comment_count: number
   status: string
   created_at: string
+  liked: boolean
 }
 
 export interface PostComment {
