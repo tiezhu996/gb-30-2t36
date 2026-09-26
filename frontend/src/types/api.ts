@@ -58,6 +58,13 @@ export interface CommunityPost {
   comment_count: number
   status: string
   created_at: string
+  liked?: boolean
+}
+
+export interface PostLikeResult {
+  id: number
+  like_count: number
+  liked: boolean
 }
 
 export interface PostComment {

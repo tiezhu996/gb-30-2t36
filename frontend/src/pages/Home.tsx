@@ -5,20 +5,26 @@ import axios from 'axios'
 import PetCard from '@/components/common/PetCard'
 import PostCard from '@/components/common/PostCard'
 import OrgCard from '@/components/common/OrgCard'
+import { usePostLikeStore } from '@/stores/postLikeStore'
 import type { Pet } from '@/constants/pet'
 import type { Organization } from '@/constants/organization'
 import type { CommunityPost } from '@/types/api'
 
 export default function Home() {
   const navigate = useNavigate()
+  const seed = usePostLikeStore((s) => s.seed)
   const [hotPets, setHotPets] = useState<Pet[]>([])
   const [posts, setPosts] = useState<CommunityPost[]>([])
   const [orgs, setOrgs] = useState<Organization[]>([])
   useEffect(() => {
+    // The overview payload is a shared, anonymous cache. Liked state for the
+    // signed-in user is merged globally (App) via /users/me/liked-posts.
     axios.get('/api/v1/home/overview').then((res) => {
       setHotPets(res.data.data.hot_pets || [])
-      setPosts(res.data.data.latest_posts || [])
+      const latestPosts = res.data.data.latest_posts || []
+      setPosts(latestPosts)
       setOrgs(res.data.data.orgs || [])
+      seed(latestPosts)
     })
   }, [])
 

@@ -19,6 +19,7 @@ func migrate(db *gorm.DB) error {
 		&model.AdoptionApplication{},
 		&model.VisitReview{},
 		&model.CommunityPost{},
+		&model.PostLike{},
 		&model.PostComment{},
 		&model.Donation{},
 		&model.DonationUsage{},
@@ -80,10 +81,21 @@ func seed(db *gorm.DB) error {
 	}
 
 	posts := []model.CommunityPost{
-		{UserID: orgUser.ID, OrgID: org.ID, Title: "旺财的救助故事：从流浪到新生", Content: "旺财是在街角被发现的流浪狗，经过治疗与照顾，如今已经健康活泼，等待有缘家庭领养。", PostType: "story", LikeCount: 32, CommentCount: 6},
-		{UserID: user.ID, Title: "寻主公告：走失的橘猫", Content: "昨天在小区附近捡到一只橘猫，脖子上有红色项圈，请失主联系。", PostType: "lost_notice", LikeCount: 12, CommentCount: 3},
+		{UserID: orgUser.ID, OrgID: org.ID, Title: "旺财的救助故事：从流浪到新生", Content: "旺财是在街角被发现的流浪狗，经过治疗与照顾，如今已经健康活泼，等待有缘家庭领养。", PostType: "story", LikeCount: 2, CommentCount: 6},
+		{UserID: user.ID, Title: "寻主公告：走失的橘猫", Content: "昨天在小区附近捡到一只橘猫，脖子上有红色项圈，请失主联系。", PostType: "lost_notice", LikeCount: 1, CommentCount: 3},
 	}
 	if err := db.Create(&posts).Error; err != nil {
+		return err
+	}
+
+	// Like records back the counters so counts stay consistent with the
+	// one-row-per-user rule.
+	postLikes := []model.PostLike{
+		{UserID: user.ID, PostID: posts[0].ID},
+		{UserID: admin.ID, PostID: posts[0].ID},
+		{UserID: orgUser.ID, PostID: posts[1].ID},
+	}
+	if err := db.Create(&postLikes).Error; err != nil {
 		return err
 	}
 

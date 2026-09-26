@@ -1,5 +1,5 @@
 import request from '@/utils/request'
-import type { CommunityPost, PostComment } from '@/types/api'
+import type { CommunityPost, PostComment, PostLikeResult } from '@/types/api'
 import type { PageData } from '@/types/api'
 
 export function listPosts(params: { page?: number; page_size?: number; post_type?: string; keyword?: string }) {
@@ -15,7 +15,15 @@ export function createPost(payload: { title: string; content: string; images?: s
 }
 
 export function likePost(id: number) {
-  return request.put<never, CommunityPost>(`/posts/${id}/like`)
+  return request.put<never, PostLikeResult>(`/posts/${id}/like`)
+}
+
+export function unlikePost(id: number) {
+  return request.put<never, PostLikeResult>(`/posts/${id}/unlike`)
+}
+
+export function listLikedPostIds() {
+  return request.get<never, { post_ids: number[] }>('/users/me/liked-posts')
 }
 
 export function listComments(postId: number) {

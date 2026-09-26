@@ -5,11 +5,13 @@ import PostCard from '@/components/common/PostCard'
 import SearchFilter from '@/components/common/SearchFilter'
 import { listPosts, createPost } from '@/api/post'
 import { useAuth } from '@/hooks/useAuth'
+import { usePostLikeStore } from '@/stores/postLikeStore'
 import type { CommunityPost } from '@/types/api'
 
 export default function Community() {
   const navigate = useNavigate()
   const { isLoggedIn } = useAuth()
+  const seed = usePostLikeStore((s) => s.seed)
   const [posts, setPosts] = useState<CommunityPost[]>([])
   const [postType, setPostType] = useState('')
   const [open, setOpen] = useState(false)
@@ -18,10 +20,11 @@ export default function Community() {
   async function load(keyword = '') {
     const res = await listPosts({ page: 1, page_size: 20, post_type: postType, keyword })
     setPosts(res.list)
+    seed(res.list)
   }
   useEffect(() => {
     load()
-  }, [postType])
+  }, [postType, isLoggedIn])
 
   async function submit() {
     if (!isLoggedIn) {

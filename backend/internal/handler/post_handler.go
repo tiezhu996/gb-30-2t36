@@ -38,7 +38,7 @@ func (h *PostHandler) List(c *gin.Context) {
 	if pageSize < 1 || pageSize > 100 {
 		pageSize = 10
 	}
-	items, total, err := h.svc.List(postType, keyword, page, pageSize)
+	items, total, err := h.svc.List(postType, keyword, page, pageSize, middleware.GetUserID(c))
 	if err != nil {
 		c.Error(err)
 		return
@@ -53,7 +53,7 @@ func (h *PostHandler) Get(c *gin.Context) {
 		c.Error(util.NewAppError(http.StatusBadRequest, constants.CodeBadRequest, "invalid post id"))
 		return
 	}
-	p, err := h.svc.Get(uint(id))
+	p, err := h.svc.Get(uint(id), middleware.GetUserID(c))
 	if err != nil {
 		c.Error(err)
 		return
@@ -77,17 +77,41 @@ func (h *PostHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, dto.OK(created))
 }
 
-// Like handles PUT /posts/:id/like.
+// Like handles PUT /posts/:id/like: idempotently records the caller's like.
 func (h *PostHandler) Like(c *gin.Context) {
+	h.apply(c, true)
+}
+
+// Unlike handles PUT /posts/:id/unlike: idempotently removes the caller's like.
+func (h *PostHandler) Unlike(c *gin.Context) {
+	h.apply(c, false)
+}
+
+func (h *PostHandler) apply(c *gin.Context, liked bool) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
 		c.Error(util.NewAppError(http.StatusBadRequest, constants.CodeBadRequest, "invalid post id"))
 		return
 	}
-	p, err := h.svc.Like(uint(id))
+	var p *model.CommunityPost
+	if liked {
+		p, err = h.svc.Like(middleware.GetUserID(c), uint(id))
+	} else {
+		p, err = h.svc.Unlike(middleware.GetUserID(c), uint(id))
+	}
 	if err != nil {
 		c.Error(err)
 		return
 	}
-	c.JSON(http.StatusOK, dto.OK(p))
+	c.JSON(http.StatusOK, dto.OK(gin.H{"id": p.ID, "like_count": p.LikeCount, "liked": liked}))
+}
+
+// MyLikedIDs handles GET /users/me/liked-posts.
+func (h *PostHandler) MyLikedIDs(c *gin.Context) {
+	ids, err := h.svc.LikedPostIDs(middleware.GetUserID(c))
+	if err != nil {
+		c.Error(err)
+		return
+	}
+	c.JSON(http.StatusOK, dto.OK(gin.H{"post_ids": ids}))
 }

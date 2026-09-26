@@ -15,4 +15,8 @@ type CommunityPost struct {
 	CommentCount int       `gorm:"default:0" json:"comment_count"`
 	Status       string    `gorm:"size:16;default:published" json:"status"`
 	CreatedAt    time.Time `json:"created_at"`
+
+	// Liked reports whether the current viewer has liked the post.
+	// It is request-scoped and never persisted.
+	Liked bool `gorm:"-" json:"liked"`
 }

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"github.com/gbadopt/gbadopt/internal/model"
 )
@@ -33,10 +34,20 @@ func (r *CommunityPostRepository) Update(p *model.CommunityPost) error {
 	return translate(r.db.Save(p).Error)
 }
 
-// IncrementLike bumps the like count.
-func (r *CommunityPostRepository) IncrementLike(id uint) error {
-	return r.db.Model(&model.CommunityPost{}).Where("id = ?", id).
-		UpdateColumn("like_count", gorm.Expr("like_count + 1")).Error
+// GetForUpdateTx locks a post row for the duration of an outer transaction.
+func (r *CommunityPostRepository) GetForUpdateTx(tx *gorm.DB, id uint) (*model.CommunityPost, error) {
+	var p model.CommunityPost
+	if err := translate(tx.Clauses(clause.Locking{Strength: "UPDATE"}).First(&p, id).Error); err != nil {
+		return nil, err
+	}
+	return &p, nil
+}
+
+// AdjustLikeCountTx changes the like count by delta and clamps it at zero.
+func (r *CommunityPostRepository) AdjustLikeCountTx(tx *gorm.DB, id uint, delta int) error {
+	expr := gorm.Expr("GREATEST(like_count + ?, 0)", delta)
+	return tx.Model(&model.CommunityPost{}).Where("id = ?", id).
+		UpdateColumn("like_count", expr).Error
 }
 
 // IncrementComment bumps the comment count.

@@ -1,35 +1,26 @@
-import { Card, Tag, message } from 'antd'
+import { Card, Tag } from 'antd'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { getPost, likePost } from '@/api/post'
+import { getPost } from '@/api/post'
 import PostCommentList from '@/components/common/PostCommentList'
+import LikeButton from '@/components/common/LikeButton'
 import type { CommunityPost } from '@/types/api'
 import { formatDateTime } from '@/utils/dateFormat'
-import { useAuth } from '@/hooks/useAuth'
-import { useNavigate } from 'react-router-dom'
+import { usePostLikeStore } from '@/stores/postLikeStore'
 
 export default function PostDetail() {
   const { id } = useParams()
-  const { isLoggedIn } = useAuth()
-  const navigate = useNavigate()
   const [post, setPost] = useState<CommunityPost | null>(null)
+  const seed = usePostLikeStore((s) => s.seed)
 
   async function load() {
-    setPost(await getPost(id!))
+    const p = await getPost(id!)
+    setPost(p)
+    seed([p])
   }
   useEffect(() => {
     load()
   }, [id])
-
-  async function like() {
-    if (!isLoggedIn) {
-      message.warning('请先登录')
-      navigate('/login')
-      return
-    }
-    await likePost(post!.id)
-    await load()
-  }
 
   if (!post) return <p>加载中…</p>
   return (
@@ -39,7 +30,7 @@ export default function PostDetail() {
         <h1>{post.title}</h1>
         <p style={{ color: '#888' }}>{formatDateTime(post.created_at)}</p>
         <p style={{ lineHeight: 1.8 }}>{post.content}</p>
-        <a onClick={like}>👍 {post.like_count}</a>
+        <LikeButton postId={post.id} size={18} />
       </Card>
       <Card title="评论" style={{ marginTop: 16 }}>
         <PostCommentList postId={post.id} />

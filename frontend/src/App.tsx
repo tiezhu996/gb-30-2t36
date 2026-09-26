@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { UserOutlined } from '@ant-design/icons'
 import { useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { usePostLikeStore } from '@/stores/postLikeStore'
 
 const { Header, Content } = Layout
 
@@ -20,12 +21,24 @@ export default function App() {
   const navigate = useNavigate()
   const location = useLocation()
   const { token, user, logout, fetchProfile } = useAuth()
+  const loadLikedIds = usePostLikeStore((s) => s.loadLikedIds)
+  const resetLikes = usePostLikeStore((s) => s.reset)
 
   useEffect(() => {
     if (token && !user) {
       fetchProfile().catch(() => undefined)
     }
   }, [token])
+
+  // Keep the single like record in sync with the signed-in account:
+  // fetch this user's likes after login, clear them after logout.
+  useEffect(() => {
+    if (token && user) {
+      loadLikedIds().catch(() => undefined)
+    } else if (!token) {
+      resetLikes()
+    }
+  }, [token, user])
 
   const selected = NAV_ITEMS.find((n) => location.pathname.startsWith(n.key))?.key || '/'
 

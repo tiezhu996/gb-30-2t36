@@ -92,6 +92,16 @@ CREATE TABLE IF NOT EXISTS community_posts (
   CONSTRAINT fk_post_user FOREIGN KEY (user_id) REFERENCES users(id)
 );
 
+CREATE TABLE IF NOT EXISTS post_likes (
+  id BIGSERIAL PRIMARY KEY,
+  user_id BIGINT NOT NULL,
+  post_id BIGINT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  CONSTRAINT idx_post_like_user_post UNIQUE (user_id, post_id),
+  CONSTRAINT fk_post_like_user FOREIGN KEY (user_id) REFERENCES users(id),
+  CONSTRAINT fk_post_like_post FOREIGN KEY (post_id) REFERENCES community_posts(id)
+);
+
 CREATE TABLE IF NOT EXISTS post_comments (
   id BIGSERIAL PRIMARY KEY,
   post_id BIGINT NOT NULL,
@@ -150,8 +160,13 @@ INSERT INTO pets (org_id, name, species, breed, age, gender, size, city, descrip
   (2, '豆豆', 'dog', '柯基', 3, 'male', 'small', '北京', '短腿萌宠，粘人爱撒娇。', '粘人', '健康', TRUE, TRUE, '["https://images.unsplash.com/photo-1529778873920-4da4926a72c2?w=600"]', 'available');
 
 INSERT INTO community_posts (user_id, org_id, title, content, post_type, like_count, comment_count) VALUES
-  (3, 1, '旺财的救助故事：从流浪到新生', '旺财是在街角被发现的流浪狗，经过治疗与照顾，如今已经健康活泼，等待有缘家庭领养。', 'story', 32, 6),
-  (2, NULL, '寻主公告：走失的橘猫', '昨天在小区附近捡到一只橘猫，脖子上有红色项圈，请失主联系。', 'lost_notice', 12, 3);
+  (3, 1, '旺财的救助故事：从流浪到新生', '旺财是在街角被发现的流浪狗，经过治疗与照顾，如今已经健康活泼，等待有缘家庭领养。', 'story', 2, 6),
+  (2, NULL, '寻主公告：走失的橘猫', '昨天在小区附近捡到一只橘猫，脖子上有红色项圈，请失主联系。', 'lost_notice', 1, 3);
+
+INSERT INTO post_likes (user_id, post_id) VALUES
+  (2, 1),
+  (1, 1),
+  (3, 2);
 
 INSERT INTO post_comments (post_id, user_id, content) VALUES
   (1, 2, '太暖心了，希望旺财早日找到新家！'),

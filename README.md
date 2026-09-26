@@ -143,7 +143,9 @@ gb-30/
 | GET | /api/v1/posts/:id/comments | 公开 | 帖子评论列表 |
 | POST | /api/v1/posts | 登录（限流） | 发布帖子 |
 | POST | /api/v1/posts/:id/comments | 登录（限流） | 发表评论（事务：写评论+自增评论数） |
-| PUT | /api/v1/posts/:id/like | 登录 | 帖子点赞 |
+| PUT | /api/v1/posts/:id/like | 登录 | 帖子点赞（幂等：每人每帖只记一次，重复点击不重复计数） |
+| PUT | /api/v1/posts/:id/unlike | 登录 | 收回点赞（幂等：计数减一且不会为负） |
+| GET | /api/v1/users/me/liked-posts | 登录 | 我点赞过的帖子 id 列表（列表/详情/首页共用同一份点赞状态） |
 | DELETE | /api/v1/comments/:id | 登录 | 删除自己的评论 |
 | POST | /api/v1/donations | 登录（限流） | 捐款 |
 | GET | /api/v1/donations/me | 登录 | 我的捐款记录 |
